@@ -257,7 +257,6 @@
     if (groupItems.count == 0) return nil;
     _groupItems = groupItems.copy;
     _blurEffectBackground = YES;
-    
 //    NSString *model = [UIDevice currentDevice].machineModel;
     static NSMutableSet *oldDevices;
     static dispatch_once_t onceToken;
@@ -356,7 +355,15 @@
     [self addSubview:_contentView];
     [_contentView addSubview:_scrollView];
     [_contentView addSubview:_pager];
-    
+    /**
+    (lldb) po groupView.recursiveDescription
+    <YYPhotoGroupView: 0x7fb8a4604020; frame = (0 0; 375 667); clipsToBounds = YES; gestureRecognizers = <NSArray: 0x6000002408a0>; layer = <CALayer: 0x6000004219e0>>
+    | <UIImageView: 0x7fb8a4416c10; frame = (0 0; 375 667); autoresize = W+H; userInteractionEnabled = NO; layer = <CALayer: 0x600000421c40>> - (null)
+    | <UIImageView: 0x7fb8a4416df0; frame = (0 0; 375 667); autoresize = W+H; userInteractionEnabled = NO; layer = <CALayer: 0x60000022da00>> - (null)
+    | <UIView: 0x7fb8a4416fd0; frame = (0 0; 375 667); autoresize = W+H; layer = <CALayer: 0x600000421dc0>>
+    |    | <UIScrollView: 0x7fb8a4805000; frame = (-10 0; 395 667); clipsToBounds = YES; autoresize = W+H; gestureRecognizers = <NSArray: 0x60000005a2e0>; layer = <CALayer: 0x600000421e40>; contentOffset: {0, 0}; contentSize: {0, 0}>
+    |    | <UIPageControl: 0x7fb8a44230b0; frame = (18 644; 339 10); hidden = YES; autoresize = W+TM; userInteractionEnabled = NO; layer = <CALayer: 0x600000422020>>
+     */
     return self;
 }
 
@@ -365,6 +372,8 @@
                  toContainer:(UIView *)toContainer
                     animated:(BOOL)animated
                   completion:(void (^)(void))completion {
+    
+    
     if (!toContainer) return;
     
     _fromView = fromView;
@@ -387,11 +396,17 @@
     fromView.hidden = fromViewHidden;
     
     _background.image = _snapshorImageHideFromView;
-    if (_blurEffectBackground) {
+    _blurBackground.image = _snapshorImageHideFromView;
+    
+    //给_blurBackground添加模糊效果
+    UIVisualEffectView *effectView = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleLight]];
+    effectView.frame = self.blurBackground.frame;
+    [self.blurBackground addSubview:effectView];
+//    if (_blurEffectBackground) {
 //        _blurBackground.image = [_snapshorImageHideFromView imageByBlurDark]; //Same to UIBlurEffectStyleDark
-    } else {
-//        _blurBackground.image = [UIImage imageWithColor:[UIColor blackColor]];
-    }
+//    } else {
+//       [UIImage imageWithColor:[UIColor blackColor]];
+//    }
     
     self.size = _toContainerView.size;
     self.blurBackground.alpha = 0;
@@ -402,6 +417,7 @@
     
     _scrollView.contentSize = CGSizeMake(_scrollView.width * self.groupItems.count, _scrollView.height);
     [_scrollView scrollRectToVisible:CGRectMake(_scrollView.width * _pager.currentPage, 0, _scrollView.width, _scrollView.height) animated:NO];
+    
     [self scrollViewDidScroll:_scrollView];
     
     [UIView setAnimationsEnabled:YES];
@@ -613,6 +629,13 @@
         if (i >= 0 && i < self.groupItems.count) {
             YYPhotoGroupCell *cell = [self cellForPage:i];
             if (!cell) {
+                /*
+                 lldb) po cell.recursiveDescription
+                 <YYPhotoGroupCell: 0x7fee2e036800; baseClass = UIScrollView; frame = (0 0; 375 667); clipsToBounds = YES; gestureRecognizers = <NSArray: 0x600000259470>; layer = <CALayer: 0x6000004294a0>; contentOffset: {0, 0}; contentSize: {0, 0}>
+                 | <UIView: 0x7fee2de1fe70; frame = (0 0; 375 667); clipsToBounds = YES; layer = <CALayer: 0x608000238680>>
+                 |    | <YYAnimatedImageView: 0x7fee30594f10; baseClass = UIImageView; frame = (0 0; 375 667); clipsToBounds = YES; userInteractionEnabled = NO; layer = <CALayer: 0x608000230320>> - (null)
+                 | <CAShapeLayer: 0x608000221ea0> (layer)
+                 */
                 YYPhotoGroupCell *cell = [self dequeueReusableCell];
                 cell.page = i;
                 cell.left = (self.width + kPadding) * i + kPadding / 2;
