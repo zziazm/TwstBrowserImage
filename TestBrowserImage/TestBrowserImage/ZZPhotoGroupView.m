@@ -4,8 +4,8 @@
 //
 
 #import "ZZPhotoGroupView.h"
-#import "ZZMacro.h"
 #import "UIView+ZZAdd.h"
+#import "UIView+WebCache.h"
 #import "UIImageView+WebCache.h"
 #define kPadding 20
 #define kHiColor [UIColor colorWithRGBHex:0x2dd6b8]
@@ -117,7 +117,7 @@
     
     [self setZoomScale:1.0 animated:NO];
     self.maximumZoomScale = 1;
-    [_imageView sd_cancelCurrentAnimationImagesLoad];
+    [_imageView sd_cancelCurrentImageLoad];
 //    [_imageView cancelCurrentImageRequest];
 //    [_imageView.layer removePreviousFadeAnimation];
     
@@ -133,26 +133,26 @@
         return;
     }
     
-    @weakify(self);
-   
+    __weak typeof(self) weakSelf = self;
     [_imageView sd_setImageWithURL:item.largeImageURL placeholderImage:item.thumbImage options:SDWebImageRetryFailed progress:^(NSInteger receivedSize, NSInteger expectedSize, NSURL * _Nullable targetURL) {
-        @strongify(self);
+        __strong typeof (self) strongSelf = weakSelf;
         if (!self) return;
         CGFloat progress = receivedSize / (float)expectedSize;
         progress = progress < 0.01 ? 0.01 : progress > 1 ? 1 : progress;
         if (isnan(progress)) progress = 0;
-        self.progressLayer.hidden = NO;
-        self.progressLayer.strokeEnd = progress;
+        strongSelf.progressLayer.hidden = NO;
+        strongSelf.progressLayer.strokeEnd = progress;
 
     } completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
-        @strongify(self);
-        if (!self) return;
-        self.progressLayer.hidden = YES;
-            self.maximumZoomScale = 3;
-            if (image) {
-                self->_itemDidLoad = YES;
-                [self resizeSubviewSize];
-//                [self.imageView.layer addFadeAnimationWithDuration:0.1 curve:UIViewAnimationCurveLinear];
+        __strong typeof (self) strongSelf = weakSelf;
+
+        if (!strongSelf) return;
+        strongSelf.progressLayer.hidden = YES;
+        strongSelf.maximumZoomScale = 3;
+        if (image) {
+            strongSelf->_itemDidLoad = YES;
+            [strongSelf resizeSubviewSize];
+
         }
     }];
     
@@ -409,6 +409,7 @@
     self.pager.alpha = 0;
     self.pager.numberOfPages = self.groupItems.count;
     self.pager.currentPage = page;
+    //_toContainerView添加了photoGroupView，此时还没有生成cell
     [_toContainerView addSubview:self];
     
     _scrollView.contentSize = CGSizeMake(_scrollView.width * self.groupItems.count, _scrollView.height);
@@ -419,7 +420,6 @@
     [UIView setAnimationsEnabled:YES];
     _fromNavigationBarHidden = [UIApplication sharedApplication].statusBarHidden;
     [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:animated ? UIStatusBarAnimationFade : UIStatusBarAnimationNone];
-    
     
     YYPhotoGroupCell *cell = [self cellForPage:self.currentPage];
     ZZPhotoGroupItem *item = _groupItems[self.currentPage];
@@ -561,7 +561,6 @@
         _background.image = _snapshorImageHideFromView;
     }
 
-    
     if (isFromImageClipped) {
         CGPoint off = cell.contentOffset;
         off.y = 0 - cell.contentInset.top;
@@ -610,7 +609,7 @@
 
 - (void)cancelAllImageLoad {
     [_cells enumerateObjectsUsingBlock:^(YYPhotoGroupCell *cell, NSUInteger idx, BOOL *stop) {
-        [cell.imageView sd_cancelCurrentAnimationImagesLoad];
+        [cell.imageView sd_cancelCurrentImageLoad];
 //        [cell.imageView sd_cancelCurrentImageRequest];
     }];
 }

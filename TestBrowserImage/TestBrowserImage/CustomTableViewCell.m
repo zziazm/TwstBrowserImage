@@ -62,6 +62,7 @@ static NSInteger cellWidth = 320;
             imageView.hidden = YES;
             [imageView sd_cancelCurrentImageLoad];
         }else{
+            imageView.hidden = NO;
             [imageView sd_setImageWithURL:[NSURL URLWithString:urls[i]] placeholderImage:nil completed:nil];
         }
     }
