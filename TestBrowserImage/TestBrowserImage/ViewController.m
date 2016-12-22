@@ -7,7 +7,7 @@
 //
 
 #import "ViewController.h"
-#import "YYPhotoGroupView.h"
+#import "ZZPhotoGroupView.h"
 #import "UIImageView+WebCache.h"
 #import "UIView+ZZAdd.h"
 
@@ -78,14 +78,14 @@
     }];
     NSMutableArray * items = @[].mutableCopy;
     for (int i = 0; i < _datasource.count; i++) {
-        YYPhotoGroupItem * item = [[YYPhotoGroupItem alloc] init];
+        ZZPhotoGroupItem * item = [[ZZPhotoGroupItem alloc] init];
         CustomCell * aCell = visibleCells[i];
         item.thumbView = aCell.imageView;
         item.largeImageSize = CGSizeZero;
         item.largeImageURL = [NSURL URLWithString:_datasource[i]];
         [items addObject:item];
     }
-    YYPhotoGroupView * groupView = [[YYPhotoGroupView alloc] initWithGroupItems:items];
+    ZZPhotoGroupView * groupView = [[ZZPhotoGroupView alloc] initWithGroupItems:items];
     [groupView presentFromImageView:cell.imageView toContainer:self.view animated:YES completion:nil];
 }
 

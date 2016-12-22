@@ -1,25 +1,21 @@
 //
 //  YYPhotoGroupView.m
 //
-//  Created by ibireme on 14/3/9.
-//  Copyright (C) 2014 ibireme. All rights reserved.
 //
 
-#import "YYPhotoGroupView.h"
+#import "ZZPhotoGroupView.h"
 #import "ZZMacro.h"
 #import "UIView+ZZAdd.h"
 #import "UIImageView+WebCache.h"
 #define kPadding 20
 #define kHiColor [UIColor colorWithRGBHex:0x2dd6b8]
 #define YY_CLAMP(_x_, _low_, _high_)  (((_x_) > (_high_)) ? (_high_) : (((_x_) < (_low_)) ? (_low_) : (_x_)))
-
-
-@interface YYPhotoGroupItem()<NSCopying>
+@interface ZZPhotoGroupItem()<NSCopying>
 @property (nonatomic, readonly) UIImage *thumbImage;
 @property (nonatomic, readonly) BOOL thumbClippedToTop;
 - (BOOL)shouldClipToTop:(CGSize)imageSize forView:(UIView *)view;
 @end
-@implementation YYPhotoGroupItem
+@implementation ZZPhotoGroupItem
 
 - (UIImage *)thumbImage {
     if ([_thumbView respondsToSelector:@selector(image)]) {
@@ -44,7 +40,7 @@
 }
 
 - (id)copyWithZone:(NSZone *)zone {
-    YYPhotoGroupItem *item = [self.class new];
+    ZZPhotoGroupItem *item = [self.class new];
     return item;
 }
 @end
@@ -60,7 +56,7 @@
 @property (nonatomic, assign) CGFloat progress;
 @property (nonatomic, strong) CAShapeLayer *progressLayer;
 
-@property (nonatomic, strong) YYPhotoGroupItem *item;
+@property (nonatomic, strong) ZZPhotoGroupItem *item;
 @property (nonatomic, readonly) BOOL itemDidLoad;
 - (void)resizeSubviewSize;
 @end
@@ -113,7 +109,7 @@
     _progressLayer.frame = frame;
 }
 
-- (void)setItem:(YYPhotoGroupItem *)item {
+- (void)setItem:(ZZPhotoGroupItem *)item {
     if (_item == item) return;
     _item = item;
     _itemDidLoad = NO;
@@ -226,7 +222,7 @@
 
 
 
-@interface YYPhotoGroupView() <UIScrollViewDelegate, UIGestureRecognizerDelegate>
+@interface ZZPhotoGroupView() <UIScrollViewDelegate, UIGestureRecognizerDelegate>
 @property (nonatomic, weak) UIView *fromView;
 @property (nonatomic, weak) UIView *toContainerView;
 
@@ -250,7 +246,7 @@
 @property (nonatomic, assign) CGPoint panGestureBeginPoint;
 @end
 
-@implementation YYPhotoGroupView
+@implementation ZZPhotoGroupView
 
 - (instancetype)initWithGroupItems:(NSArray *)groupItems {
     self = [super init];
@@ -381,7 +377,7 @@
     
     NSInteger page = -1;
     for (NSUInteger i = 0; i < self.groupItems.count; i++) {
-        if (fromView == ((YYPhotoGroupItem *)self.groupItems[i]).thumbView) {
+        if (fromView == ((ZZPhotoGroupItem *)self.groupItems[i]).thumbView) {
             page = (int)i;
             break;
         }
@@ -426,7 +422,7 @@
     
     
     YYPhotoGroupCell *cell = [self cellForPage:self.currentPage];
-    YYPhotoGroupItem *item = _groupItems[self.currentPage];
+    ZZPhotoGroupItem *item = _groupItems[self.currentPage];
     
     if (!item.thumbClippedToTop) {
 //        NSString *imageKey = [[YYWebImageManager sharedManager] cacheKeyForURL:item.largeImageURL];
@@ -511,7 +507,7 @@
     [[UIApplication sharedApplication] setStatusBarHidden:_fromNavigationBarHidden withAnimation:animated ? UIStatusBarAnimationFade : UIStatusBarAnimationNone];
     NSInteger currentPage = self.currentPage;
     YYPhotoGroupCell *cell = [self cellForPage:currentPage];
-    YYPhotoGroupItem *item = _groupItems[currentPage];
+    ZZPhotoGroupItem *item = _groupItems[currentPage];
     
     UIView *fromView = nil;
     if (_fromItemIndex == currentPage) {
