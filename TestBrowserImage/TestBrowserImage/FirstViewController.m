@@ -94,7 +94,7 @@
         [items addObject:item];
     }
     ZZPhotoGroupView * groupView = [[ZZPhotoGroupView alloc] initWithGroupItems:items];
-    [groupView presentFromImageView:fromView toContainer:self.view animated:YES completion:nil];
+    [groupView presentFromImageView:fromView toContainer:self.navigationController.view animated:YES completion:nil];
 }
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];

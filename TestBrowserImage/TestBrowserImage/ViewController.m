@@ -86,7 +86,7 @@
         [items addObject:item];
     }
     ZZPhotoGroupView * groupView = [[ZZPhotoGroupView alloc] initWithGroupItems:items];
-    [groupView presentFromImageView:cell.imageView toContainer:self.view animated:YES completion:nil];
+    [groupView presentFromImageView:cell.imageView toContainer:self.navigationController.view animated:YES completion:nil];
 }
 
 #pragma mark --  UICollectionViewDataSource
