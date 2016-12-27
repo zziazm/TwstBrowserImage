@@ -15,6 +15,7 @@
 @property (nonatomic, readonly) BOOL thumbClippedToTop;
 - (BOOL)shouldClipToTop:(CGSize)imageSize forView:(UIView *)view;
 @end
+
 @implementation ZZPhotoGroupItem
 
 - (UIImage *)thumbImage {
@@ -25,6 +26,9 @@
 }
 
 - (BOOL)thumbClippedToTop {
+#if debug
+#else
+#endif
     if (_thumbView) {
         if (_thumbView.layer.contentsRect.size.height < 1) {
             return YES;
@@ -43,6 +47,7 @@
     ZZPhotoGroupItem *item = [self.class new];
     return item;
 }
+
 @end
 
 
@@ -118,9 +123,6 @@
     [self setZoomScale:1.0 animated:NO];
     self.maximumZoomScale = 1;
     [_imageView sd_cancelCurrentImageLoad];
-//    [_imageView cancelCurrentImageRequest];
-//    [_imageView.layer removePreviousFadeAnimation];
-    
     _progressLayer.hidden = NO;
     [CATransaction begin];
     [CATransaction setDisableActions:YES];
@@ -142,10 +144,8 @@
         if (isnan(progress)) progress = 0;
         strongSelf.progressLayer.hidden = NO;
         strongSelf.progressLayer.strokeEnd = progress;
-
     } completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
         __strong typeof (self) strongSelf = weakSelf;
-
         if (!strongSelf) return;
         strongSelf.progressLayer.hidden = YES;
         strongSelf.maximumZoomScale = 3;
@@ -254,37 +254,37 @@
     _groupItems = groupItems.copy;
     _blurEffectBackground = YES;
 //    NSString *model = [UIDevice currentDevice].machineModel;
-    static NSMutableSet *oldDevices;
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        oldDevices = [NSMutableSet new];
-        [oldDevices addObject:@"iPod1,1"];
-        [oldDevices addObject:@"iPod2,1"];
-        [oldDevices addObject:@"iPod3,1"];
-        [oldDevices addObject:@"iPod4,1"];
-        [oldDevices addObject:@"iPod5,1"];
-        
-        [oldDevices addObject:@"iPhone1,1"];
-        [oldDevices addObject:@"iPhone1,1"];
-        [oldDevices addObject:@"iPhone1,2"];
-        [oldDevices addObject:@"iPhone2,1"];
-        [oldDevices addObject:@"iPhone3,1"];
-        [oldDevices addObject:@"iPhone3,2"];
-        [oldDevices addObject:@"iPhone3,3"];
-        [oldDevices addObject:@"iPhone4,1"];
-        
-        [oldDevices addObject:@"iPad1,1"];
-        [oldDevices addObject:@"iPad2,1"];
-        [oldDevices addObject:@"iPad2,2"];
-        [oldDevices addObject:@"iPad2,3"];
-        [oldDevices addObject:@"iPad2,4"];
-        [oldDevices addObject:@"iPad2,5"];
-        [oldDevices addObject:@"iPad2,6"];
-        [oldDevices addObject:@"iPad2,7"];
-        [oldDevices addObject:@"iPad3,1"];
-        [oldDevices addObject:@"iPad3,2"];
-        [oldDevices addObject:@"iPad3,3"];
-    });
+//    static NSMutableSet *oldDevices;
+//    static dispatch_once_t onceToken;
+//    dispatch_once(&onceToken, ^{
+//        oldDevices = [NSMutableSet new];
+//        [oldDevices addObject:@"iPod1,1"];
+//        [oldDevices addObject:@"iPod2,1"];
+//        [oldDevices addObject:@"iPod3,1"];
+//        [oldDevices addObject:@"iPod4,1"];
+//        [oldDevices addObject:@"iPod5,1"];
+//        
+//        [oldDevices addObject:@"iPhone1,1"];
+//        [oldDevices addObject:@"iPhone1,1"];
+//        [oldDevices addObject:@"iPhone1,2"];
+//        [oldDevices addObject:@"iPhone2,1"];
+//        [oldDevices addObject:@"iPhone3,1"];
+//        [oldDevices addObject:@"iPhone3,2"];
+//        [oldDevices addObject:@"iPhone3,3"];
+//        [oldDevices addObject:@"iPhone4,1"];
+//        
+//        [oldDevices addObject:@"iPad1,1"];
+//        [oldDevices addObject:@"iPad2,1"];
+//        [oldDevices addObject:@"iPad2,2"];
+//        [oldDevices addObject:@"iPad2,3"];
+//        [oldDevices addObject:@"iPad2,4"];
+//        [oldDevices addObject:@"iPad2,5"];
+//        [oldDevices addObject:@"iPad2,6"];
+//        [oldDevices addObject:@"iPad2,7"];
+//        [oldDevices addObject:@"iPad3,1"];
+//        [oldDevices addObject:@"iPad3,2"];
+//        [oldDevices addObject:@"iPad3,3"];
+//    });
 //    if ([oldDevices containsObject:model]) {
 //        _blurEffectBackground = NO;
 //    }
@@ -435,70 +435,100 @@
         [cell resizeSubviewSize];
     }
     
-    if (item.thumbClippedToTop) {
-        CGRect fromFrame = [_fromView convertRect:_fromView.bounds toView:cell];
-        CGRect originFrame = cell.imageContainerView.frame;
-        CGFloat scale = fromFrame.size.width / cell.imageContainerView.width;
-        
-        cell.imageContainerView.centerX = CGRectGetMidX(fromFrame);
-        cell.imageContainerView.height = fromFrame.size.height / scale;
-        [cell.imageContainerView.layer setValue:@(scale) forKeyPath:@"transform.scale"];
-//        cell.imageContainerView.layer.transformScale = scale;
-        cell.imageContainerView.centerY = CGRectGetMidY(fromFrame);
-        
-        float oneTime = animated ? 0.25 : 0;
-        [UIView animateWithDuration:oneTime delay:0 options:UIViewAnimationOptionBeginFromCurrentState|UIViewAnimationOptionCurveEaseInOut animations:^{
-            _blurBackground.alpha = 1;
-        }completion:NULL];
-        
-        _scrollView.userInteractionEnabled = NO;
-        [UIView animateWithDuration:oneTime delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-//            cell.imageContainerView.layer.transformScale = 1;
-            [cell.imageContainerView.layer setValue:@(1) forKeyPath:@"transform.scale"];
-
-            cell.imageContainerView.frame = originFrame;
-            _pager.alpha = 1;
-        }completion:^(BOOL finished) {
-            _isPresented = YES;
-            [self scrollViewDidScroll:_scrollView];
-            _scrollView.userInteractionEnabled = YES;
-            [self hidePager];
-            if (completion) completion();
-        }];
-        
-    } else {
+//    if (item.thumbClippedToTop) {
+//        CGRect fromFrame = [_fromView convertRect:_fromView.bounds toView:cell];
+//        CGRect originFrame = cell.imageContainerView.frame;
+//        CGFloat scale = fromFrame.size.width / cell.imageContainerView.width;
+//        
+//        cell.imageContainerView.centerX = CGRectGetMidX(fromFrame);
+//        cell.imageContainerView.height = fromFrame.size.height / scale;
+//        [cell.imageContainerView.layer setValue:@(scale) forKeyPath:@"transform.scale"];
+////        cell.imageContainerView.layer.transformScale = scale;
+//        cell.imageContainerView.centerY = CGRectGetMidY(fromFrame);
+//        float oneTime = animated ? 0.2 : 0;
+//        [UIView animateWithDuration:oneTime*2 delay:0 options:UIViewAnimationOptionBeginFromCurrentState|UIViewAnimationOptionCurveEaseInOut animations:^{
+//            _blurBackground.alpha = 1;
+//        }completion:^(BOOL finished) {
+//            NSLog(@"d");
+//        } ];
+//        
+//        _scrollView.userInteractionEnabled = NO;
+//        [UIView animateWithDuration:oneTime delay:0 options:UIViewAnimationOptionBeginFromCurrentState|UIViewAnimationOptionCurveEaseInOut animations:^{
+//            cell.imageView.frame = cell.imageContainerView.bounds;
+//            _pager.alpha = 1;
+//        }completion:^(BOOL finished) {
+//            cell.imageContainerView.clipsToBounds = YES;
+//            _isPresented = YES;
+//            [self scrollViewDidScroll:_scrollView];
+//            _scrollView.userInteractionEnabled = YES;
+//            if (completion) completion();
+//        }];
+//
+////        float oneTime = animated ? 0.25 : 0;
+////        [UIView animateWithDuration:oneTime delay:0 options:UIViewAnimationOptionBeginFromCurrentState|UIViewAnimationOptionCurveEaseInOut animations:^{
+////            _blurBackground.alpha = 1;
+////        }completion:NULL];
+////        
+////        _scrollView.userInteractionEnabled = NO;
+////        [UIView animateWithDuration:oneTime delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+//////            cell.imageContainerView.layer.transformScale = 1;
+////            [cell.imageContainerView.layer setValue:@(1) forKeyPath:@"transform.scale"];
+////
+////            cell.imageContainerView.frame = originFrame;
+////            _pager.alpha = 1;
+////        }completion:^(BOOL finished) {
+////            _isPresented = YES;
+////            [self scrollViewDidScroll:_scrollView];
+////            _scrollView.userInteractionEnabled = YES;
+////            [self hidePager];
+////            if (completion) completion();
+////        }];
+//        
+//    } else {
         CGRect fromFrame = [_fromView convertRect:_fromView.bounds toView:cell.imageContainerView];
         
         cell.imageContainerView.clipsToBounds = NO;
         cell.imageView.frame = fromFrame;
         cell.imageView.contentMode = UIViewContentModeScaleAspectFill;
         
-        float oneTime = animated ? 0.18 : 0;
+        float oneTime = animated ? 0.2 : 0;
         [UIView animateWithDuration:oneTime*2 delay:0 options:UIViewAnimationOptionBeginFromCurrentState|UIViewAnimationOptionCurveEaseInOut animations:^{
             _blurBackground.alpha = 1;
-        }completion:NULL];
+        }completion:^(BOOL finished) {
+            NSLog(@"d");
+        } ];
         
         _scrollView.userInteractionEnabled = NO;
         [UIView animateWithDuration:oneTime delay:0 options:UIViewAnimationOptionBeginFromCurrentState|UIViewAnimationOptionCurveEaseInOut animations:^{
             cell.imageView.frame = cell.imageContainerView.bounds;
-            [cell.imageView.layer setValue:@(1.01) forKeyPath:@"transform.scale"];
-
-//            cell.imageView.layer.transformScale = 1.01;
+            _pager.alpha = 1;
         }completion:^(BOOL finished) {
-            [UIView animateWithDuration:oneTime delay:0 options:UIViewAnimationOptionBeginFromCurrentState|UIViewAnimationOptionCurveEaseInOut animations:^{
-                [cell.imageView.layer setValue:@(1.0) forKeyPath:@"transform.scale"];
-//                cell.imageView.layer.transformScale = 1.0;
-                _pager.alpha = 1;
-            }completion:^(BOOL finished) {
-                cell.imageContainerView.clipsToBounds = YES;
-                _isPresented = YES;
-                [self scrollViewDidScroll:_scrollView];
-                _scrollView.userInteractionEnabled = YES;
-                [self hidePager];
-                if (completion) completion();
-            }];
+            cell.imageContainerView.clipsToBounds = YES;
+            _isPresented = YES;
+            [self scrollViewDidScroll:_scrollView];
+            _scrollView.userInteractionEnabled = YES;
+            if (completion) completion();
         }];
-    }
+
+//        [UIView animateWithDuration:oneTime delay:0 options:UIViewAnimationOptionBeginFromCurrentState|UIViewAnimationOptionCurveEaseInOut animations:^{
+//            cell.imageView.frame = cell.imageContainerView.bounds;
+////            [cell.imageView.layer setValue:@(1.01) forKeyPath:@"transform.scale"];
+//            //            cell.imageView.layer.transformScale = 1.01;
+//        }completion:^(BOOL finished) {
+//            [UIView animateWithDuration:oneTime delay:0 options:UIViewAnimationOptionBeginFromCurrentState|UIViewAnimationOptionCurveEaseInOut animations:^{
+////                [cell.imageView.layer setValue:@(1.0) forKeyPath:@"transform.scale"];
+////                cell.imageView.layer.transformScale = 1.0;
+//                _pager.alpha = 1;
+//            }completion:^(BOOL finished) {
+//                cell.imageContainerView.clipsToBounds = YES;
+//                _isPresented = YES;
+//                [self scrollViewDidScroll:_scrollView];
+//                _scrollView.userInteractionEnabled = YES;
+//                [self hidePager];
+//                if (completion) completion();
+//            }];
+//        }];
+//    }
 }
 
 - (void)dismissAnimated:(BOOL)animated completion:(void (^)(void))completion {
@@ -567,12 +597,10 @@
         [cell setContentOffset:off animated:animated];
 //        [cell scrollToTopAnimated:NO];
     }
-    
     [UIView animateWithDuration:animated ? 0.2 : 0 delay:0 options:UIViewAnimationOptionBeginFromCurrentState|UIViewAnimationOptionCurveEaseOut animations:^{
         _pager.alpha = 0.0;
         _blurBackground.alpha = 0.0;
         if (isFromImageClipped) {
-            
             CGRect fromFrame = [fromView convertRect:fromView.bounds toView:cell];
             CGFloat scale = fromFrame.size.width / cell.imageContainerView.width * cell.zoomScale;
             CGFloat height = fromFrame.size.height / fromFrame.size.width * cell.imageContainerView.width;
@@ -593,13 +621,11 @@
         [UIView animateWithDuration:animated ? 0.15 : 0 delay:0 options:UIViewAnimationOptionCurveLinear animations:^{
             self.alpha = 0;
         } completion:^(BOOL finished) {
-            cell.imageContainerView.layer.anchorPoint = CGPointMake(0.5, 0.5);
+//            cell.imageContainerView.layer.anchorPoint = CGPointMake(0.5, 0.5);
             [self removeFromSuperview];
             if (completion) completion();
         }];
     }];
-    
-    
 }
 
 - (void)dismiss {

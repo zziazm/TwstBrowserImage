@@ -77,6 +77,7 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
     
 }
+
 #pragma mark -- CustomTableViewCellDelegate
 - (void)cell:(CustomTableViewCell *)cell didClickIamgeAtIndex:(NSUInteger)index{
     
